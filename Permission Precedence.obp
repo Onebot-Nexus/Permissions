@@ -2,7 +2,6 @@ var yaml = require('js-yaml');
 var fs = require('fs');
 var replaceall = require("replaceall");
 
-
 exports.onMessageReceived = (function Version(bot, doc, user, userID, channelID, message, event) {
     if(message === undefined){
         return;
