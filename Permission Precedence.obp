@@ -1,0 +1,108 @@
+var esrever = require('esrever');
+var yaml = require('js-yaml');
+var fs = require('fs');
+var jsdom = require("jsdom");
+var replaceall = require("replaceall");
+
+
+exports.onMessageReceived = (function Version(bot, doc, user, userID, channelID, message, event) {
+    if(message === undefined){
+        return;
+    }
+    if (message.startsWith("*perms ")) {
+		var outpermprec="";
+		var value = message;
+		value = replaceall("perms"," ",value);
+		value = replaceall(doc.prefix," ",value);
+		value = value.trim();
+		if(value.startsWith("get"))
+		{
+			value=doc.permprecedence
+			bot.sendMessage({
+            to: doc.logchannel,
+            message: user + " asked to get permissions. "
+			});
+			outpermprec = value.replace("r","Role").replace("s","Server").replace("u","User").replace("c","Channel").trim();
+			outpermprec = replaceall(":"," > ",outpermprec);
+			bot.sendMessage({
+            to: channelID,
+            message: "Current Permissions : "+outpermprec
+			});
+		}
+		if(value.startsWith("set"))
+		{
+			value=value.replace("set"," ").trim();
+			var allowedcomb = false;
+			switch(value)
+			{
+				case "s:c:r:u":
+				case "s:c:u:r":
+				case "s:r:c:u":
+				case "s:r:u:c":
+				case "s:u:c:r":
+				case "s:u:r:c":
+				case "c:s:r:u":
+				case "c:s:u:r":
+				case "c:r:s:u":
+				case "c:r:u:s":
+				case "c:u:s:r":
+				case "c:u:r:s":
+				case "r:s:c:u":
+				case "r:s:u:c":
+				case "r:c:s:u":
+				case "r:c:u:s":
+				case "r:u:s:c":
+				case "r:u:c:s":
+				case "u:s:c:r":
+				case "u:s:r:c":
+				case "u:c:s:r":
+				case "u:c:r:s":
+				case "u:r:s:c":
+				case "u:r:c:s":
+				allowedcomb=true;
+				break;
+				default:
+				allowedcomb=false;
+				break;
+			}
+			if(allowedcomb==false)
+			{
+				bot.sendMessage({
+				to: doc.logchannel,
+				message: user + " tried to set permissions to an invalid value. "
+				});
+			}
+			if(allowedcomb==true)
+			{
+				doc.permprecedence=value;
+				outpermprec = value.replace("r","Role").replace("s","Server").replace("u","User").replace("c","Channel").trim();
+				outpermprec = replaceall(":"," > ",outpermprec);
+				bot.sendMessage({
+				to: doc.logchannel,
+				message: user + " set permissions to "+outpermprec+" . "
+				});
+				bot.sendMessage({
+				to: channelID,
+				message: "Permissions have been set. "+"\n"+"Current Permissions : "+outpermprec
+				});
+			}	
+		}
+		if(value.startsWith("reset"))
+		{
+			doc.permprecedence="s:c:r:u";
+			value=doc.permprecedence
+			bot.sendMessage({
+            to: doc.logchannel,
+            message: user + " reset permissions. "
+			});
+			outpermprec = value.replace("r","Role").replace("s","Server").replace("u","User").replace("c","Channel").trim();
+			outpermprec = replaceall(":"," > ",outpermprec);
+			bot.sendMessage({
+            to: channelID,
+            message: "Permissions have been reset. "+"\n"+"Current Permissions : "+outpermprec
+			});
+		}
+		
+    }
+	fs.writeFile(__dirname + '/../config.yaml', yaml.safeDump(doc));
+});
